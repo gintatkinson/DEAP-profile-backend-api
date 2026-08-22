@@ -12,13 +12,13 @@ if [ "$TARGET_DIR" = "$INSTALLER_ROOT" ] && [ -e "$INSTALLER_ROOT/.pipeline/upst
 fi
 
 rm -rf "$TARGET_DIR/skills" "$TARGET_DIR/rules" "$TARGET_DIR/.pipeline" "$TARGET_DIR/.agents" "$TARGET_DIR/scripts" "$TARGET_DIR/schema"
-[ -d "$INSTALLER_ROOT/skills" ] && cp -RP "$INSTALLER_ROOT/skills" "$TARGET_DIR/" || true
-[ -d "$INSTALLER_ROOT/rules" ] && cp -RP "$INSTALLER_ROOT/rules" "$TARGET_DIR/" || true
-[ -d "$INSTALLER_ROOT/.pipeline" ] && cp -RP "$INSTALLER_ROOT/.pipeline" "$TARGET_DIR/" || true
+cp -RP "$INSTALLER_ROOT/skills" "$TARGET_DIR/"
+cp -RP "$INSTALLER_ROOT/rules" "$TARGET_DIR/"
+cp -RP "$INSTALLER_ROOT/.pipeline" "$TARGET_DIR/"
 rm -rf "$TARGET_DIR/.pipeline/upstream"
-[ -d "$INSTALLER_ROOT/.agents" ] && cp -RP "$INSTALLER_ROOT/.agents" "$TARGET_DIR/" || true
-[ -d "$INSTALLER_ROOT/scripts" ] && cp -RP "$INSTALLER_ROOT/scripts" "$TARGET_DIR/" || true
-[ -d "$INSTALLER_ROOT/schema" ] && cp -RP "$INSTALLER_ROOT/schema" "$TARGET_DIR/" || true
+cp -RP "$INSTALLER_ROOT/.agents" "$TARGET_DIR/"
+cp -RP "$INSTALLER_ROOT/scripts" "$TARGET_DIR/"
+cp -RP "$INSTALLER_ROOT/schema" "$TARGET_DIR/"
 cp -P "$INSTALLER_ROOT/requirements.txt" "$TARGET_DIR/" 2>/dev/null || true
 if [ -f "$TARGET_DIR/.gitignore" ]; then
   cat "$INSTALLER_ROOT/.gitignore" >> "$TARGET_DIR/.gitignore"
@@ -30,6 +30,7 @@ fi
 
 mkdir -p "$TARGET_DIR/schema"
 mkdir -p "$TARGET_DIR/tests"
+cp -RP "$INSTALLER_ROOT/tests/test_baseline.py" "$TARGET_DIR/tests/" 2>/dev/null || true
 mkdir -p "$TARGET_DIR/docs/conops" "$TARGET_DIR/docs/safety" "$TARGET_DIR/docs/architecture/blueprints" "$TARGET_DIR/docs/epics" "$TARGET_DIR/docs/features" "$TARGET_DIR/docs/user-stories" "$TARGET_DIR/docs/use-cases"
 mkdir -p "$TARGET_DIR/.pipeline/contracts" "$TARGET_DIR/.pipeline/domain_specs" "$TARGET_DIR/.pipeline/profiles"
 chmod +x "$TARGET_DIR"/scripts/*.sh "$TARGET_DIR"/scripts/*.py 2>/dev/null || true
@@ -61,17 +62,17 @@ fi
 # Scaffold downstream root README.md if missing
 if [ ! -f "$TARGET_DIR/README.md" ]; then
   cat << 'EOF' > "$TARGET_DIR/README.md"
-# Downstream Application Project
+# Downstream Low-Altitude UAS Infrastructure Safety Project
 
 > **Repository Role:** `DOWNSTREAM_APPLICATION_WORKSPACE`  
-> **Primary Technology Profiles:** `Backend API Services`  
-> **Target Regulatory Frameworks:** `DO-178C` | `SysML v2 Interface Architecture`  
+> **Primary Technology Profiles:** `ROS2 C++ Real-Time` | `PX4 Autopilot Flight Module`  
+> **Target Regulatory Frameworks:** `JARUS SORA v2.5 (SAIL I–VI)` | `ASTM F3269-17 RTA` | `ASTM F3411-22a Remote ID` | `RTCA DO-365B DAA`  
 
 ---
 
 ## 1. System Overview
 
-This repository is an installed downstream implementation workspace governed by the **Digital Engineering Agent Platform (DEAP)**.
+This repository is an installed downstream implementation workspace governed by the **Digital Engineering Agent Platform (DEAP)** for low-altitude UAS infrastructure safety, detect-and-avoid (DAA), run-time assurance (RTA), and autonomous flight operations.
 
 ### 1.1 Primary Commercial Toolchain Integration Context
 
@@ -83,7 +84,7 @@ This platform explicitly declares **MATLAB / Simulink / Stateflow / Embedded Cod
 
 - `.agents/` & `AGENTS.md`: Agent behavior rules, role boundaries, and subagent dispatch protocols.
 - `CLAUDE.md`: Claude Code guidelines and verification gates.
-- `.pipeline/`: Constitution (`constitution.md`), domain specifications, and execution profiles.
+- `.pipeline/`: Constitution (`constitution.md`), domain specifications, and execution profiles (`profiles/ros2_cpp.md`, `profiles/px4_module.md`).
 - `rules/` & `skills/`: Platform engineering rules and agent workflow skills.
 - `schema/`: Contract definitions and SysML v2 schemas.
 - `tests/`: Automated baseline verification and safety compliance tests.
@@ -97,15 +98,112 @@ Immediately following installation, any AI agent (Antigravity, Claude Code, Gemi
 0. **Detect Repository Role & Scope**:
    - Inspect whether `.pipeline/upstream/` exists on disk.
    - If absent -> **Downstream Customer Project Mode**: Authorized for customer feature implementation and domain codebase delivery.
-1. **Read Governance Constitution**: Execute `view_file` on `.pipeline/constitution.md` (if present) to ingest the platform-independent functional governance layer and zero-mocking persistence mandates.
-2. **Load Governance Rules**: Ingest `AGENTS.md` and `rules/` to enforce project-scoped agentic rules, context-isolated subagent dispatch loops, and role boundary locks.
-3. **Bootstrap Tracker Labels & Verify Baseline**: Verify that repository issue tracker labels and baseline tests pass by running `pytest tests/` and `python3 scripts/verify_downstream_baseline.py --no-domain`.
+1. **Read Governance Constitution**: Execute `view_file` on `.pipeline/constitution.md` to ingest the platform-independent functional governance layer and zero-mocking persistence mandates.
+2. **Load Project Skills**: Execute `view_file` on `skills/feature-driven-implementation/SKILL.md` (and any active skills under `skills/` or `.agents/skills/`) to initialize feature-driven implementation protocols and review gates.
+3. **Load Governance Rules**: Ingest `AGENTS.md` and `rules/` to enforce project-scoped agentic rules, context-isolated subagent dispatch loops, and role boundary locks.
+4. **Load Platform Profile**: Read the target platform execution profile (`.pipeline/profiles/ros2_cpp.md` for ROS2 C++ Real-Time Nodes or `.pipeline/profiles/px4_module.md` for PX4 Autopilot Flight Modules) to establish platform-specific build, test, and lifecycle constraints.
+5. **Bootstrap Tracker Labels & Verify Baseline**: Verify that repository issue tracker labels and baseline tests pass by running `pytest tests/` and `python3 scripts/verify_downstream_baseline.py --no-domain`.
 
 ---
 
-## 4. Verification & Quality Gates
+## 4. Pipeline 0: Pre-Spec Safety Engineering Execution Workflow
 
-Execute baseline and governance verification:
+Pipeline 0 (**Pre-Spec Safety Engineering Engine**) ingests mission flight envelopes and airspace constraints to produce normative safety specifications, STPA/FMECA analysis, SORA SAIL assurance models, and SysML v2 textual AST artifacts.
+
+### 4.1 Master-Worker Subagent Topology
+
+```mermaid
+flowchart LR
+    CustomerIntent["Unstructured Intent & Flight Envelope"] --> Worker_0A["Worker 0A: CONOPS Synthesizer"]
+    Worker_0A -->|"CONOPS.md"| Worker_0B["Worker 0B: STPA / FMECA / SORA Assurer"]
+    Worker_0B -->|"STPA_MATRIX.md & SORA SAIL"| Worker_0C["Worker 0C: SysML v2 Authoring Worker"]
+    Worker_0C -->|"DEAP_MODEL.sysml & Handoff AST JSON"| Pipeline_1["Pipeline 1 Projection Engine"]
+```
+
+### 4.2 Pipeline 0 Command-Line Execution Prompts
+
+Execute the following prompts in sequence using context-isolated subagents:
+
+#### 4.2.1 Worker 0A: CONOPS & Mission Scenario Synthesis Prompt
+
+```text
+Role: Worker 0A — CONOPS & Mission Scenario Synthesizer
+
+Primary Commercial Toolchain Integration Context:
+This project explicitly declares MATLAB / Simulink / Stateflow / Embedded Coder as the Primary Tier-1 Commercial Toolchain Integration Context (Model-Based Design, Control Law Synthesis, DO-178C C/SPARK Ada code generation).
+
+Directive:
+Execute front-end CONOPS synthesis for the target UAS flight mission profile by ingesting the input SysML v2 safety model file (`docs/architecture/blueprints/DEAP_MODEL.sysml`). Convert raw stakeholder intent, structural SysML v2 requirements, and airspace constraints into a structured Concept of Operations (`CONOPS.md`).
+
+1. Inputs & Constraints:
+   - Primary Input SysML v2 Model File: `docs/architecture/blueprints/DEAP_MODEL.sysml` (or custom input `.sysml` file path).
+   - Ingest operational mission envelope (flight altitude boundaries, max ground speed, payload configuration, population density, BVLOS vs VLOS flight operations).
+   - Identify stakeholder role definitions (Remote Pilot in Command, Fleet Operations Manager, Command Center Lead, Air Traffic Management / UTM interface).
+   - Define flight operational phases (Pre-Flight Checkout, Launch/Takeoff, En-Route Cruise, Mission Execution, Approach & Landing, Fail-Safe Contingency RTL).
+
+2. Output Requirement:
+   - Generate `CONOPS.md` under `docs/conops/CONOPS.md`.
+   - Ensure clear operational phase boundaries, system physical and functional boundaries, and environmental envelope constraints.
+   - Include MATLAB / Simulink / Stateflow model integration baseline hooks for downstream control law synthesis.
+   - KaTeX / LaTeX Math Formatting Mandate: All multi-line aligned equations MUST be enclosed in `\begin{aligned} ... \end{aligned}` within `$$` delimiters on dedicated lines. Bare alignment tabs `&` outside an alignment environment (`aligned`, `matrix`, `cases`) and `\begin{align*}` environments are strictly forbidden.
+
+PROCEED
+```
+
+#### 4.2.2 Worker 0B: STPA Hazard Analysis, FMECA & SORA SAIL Assurer Prompt
+
+```text
+Role: Worker 0B — STPA Hazard Analysis, FMECA & SORA SAIL Assurer
+
+Primary Commercial Toolchain Integration Context:
+This project explicitly declares MATLAB / Simulink / Stateflow / Embedded Coder as the Primary Tier-1 Commercial Toolchain Integration Context (Model-Based Design, Control Law Synthesis, DO-178C C/SPARK Ada code generation).
+
+Directive:
+Perform STPA hazard analysis, FMECA failure mode criticality evaluation, and SORA SAIL I–VI risk assessment based on `docs/conops/CONOPS.md`.
+
+1. Standards Compliance:
+   - JARUS SORA v2.5 (SAIL I through SAIL VI risk mitigations, Ground Risk Class GRC, Air Risk Class ARC, Operational Safety Objectives OSOs).
+   - ASTM F3269-17 (Run-Time Assurance Monitor Architecture).
+   - RTCA DO-365B (Detect and Avoid DAA MOPS & TCAS II / ACAS sUAS alert & guidance).
+
+2. Output Requirements:
+   - Generate `STPA_MATRIX.md` under `docs/safety/STPA_MATRIX.md` containing System Losses ($L-1..N$), System Hazards ($H-1..N$), Control Structure topology, Unsafe Control Actions ($UCA-1..N$), Loss Scenarios ($LS-1..N$), and Safety Constraints ($SC-1..N$).
+   - Formulate FMECA Matrix detailing component failure modes, severity/occurrence ratings, single-point failures, and Risk Priority Numbers (RPN).
+   - Calculate SORA SAIL classification level (SAIL I–VI) and map mandatory OSOs (OSO-01 through OSO-24).
+   - KaTeX / LaTeX Math Formatting Mandate: All multi-line aligned equations MUST be enclosed in `\begin{aligned} ... \end{aligned}` within `$$` delimiters on dedicated lines. Bare alignment tabs `&` outside an alignment environment (`aligned`, `matrix`, `cases`) and `\begin{align*}` environments are strictly forbidden.
+
+PROCEED
+```
+
+#### 4.2.3 Worker 0C: SysML v2 Architectural & Safety Model Author Prompt
+
+```text
+Role: Worker 0C — SysML v2 Architectural & Safety Model Author
+
+Primary Commercial Toolchain Integration Context:
+This project explicitly declares MATLAB / Simulink / Stateflow / Embedded Coder as the Primary Tier-1 Commercial Toolchain Integration Context (Model-Based Design, Control Law Synthesis, DO-178C C/SPARK Ada code generation).
+
+Directive:
+Formalize the CONOPS (`CONOPS.md`), STPA hazard matrices, FMECA ratings, and SORA SAIL requirements (`STPA_MATRIX.md`) into a normative SysML v2 textual model and serialized AST handoff contract.
+
+1. Model Engineering Mandate:
+   - Construct `DEAP_MODEL.sysml` conforming to SysML v2 textual specification standards (`package`, `req`, `part`, `port`, `state`, `satisfy`, `verify`).
+   - Define safety statecharts for Run-Time Assurance (RTA) switching logic, contingency flight modes, and fail-safe Return-to-Launch (RTL) transitions.
+   - Establish MATLAB / Simulink / Stateflow export compatibility for DO-178C C/SPARK Ada code synthesis.
+   - KaTeX / LaTeX Math Formatting Mandate: Ensure any statechart/mathematical transition guards and formal expressions follow standard escaping and valid KaTeX blocks (all multi-line aligned equations MUST be enclosed in `\begin{aligned} ... \end{aligned}` within `$$` delimiters on dedicated lines; bare alignment tabs `&` outside an alignment environment and `\begin{align*}` are strictly forbidden).
+
+2. Output Requirements:
+   - Generate `DEAP_MODEL.sysml` under `docs/architecture/blueprints/DEAP_MODEL.sysml`.
+   - Generate `pipeline0_handoff_contract.json` under `.pipeline/contracts/pipeline0_handoff_contract.json` for downstream Pipeline 1 Agile projection and Pipeline 2 code generation.
+
+PROCEED
+```
+
+---
+
+## 5. Verification & Quality Gates
+
+Execute baseline and safety governance verification:
 
 ```bash
 # Run baseline tests
@@ -126,6 +224,7 @@ Downstream Environment & Runtime Integrity Verification Suite.
 import sys
 import os
 import re
+import subprocess
 import tempfile
 import pytest
 
@@ -264,7 +363,7 @@ def test_instructions_and_readme_accessible():
     )
 
 def test_reconcile_backlog_tooling_accessible():
-    """Verify scripts/reconcile_backlog.py exists, is readable, and non-empty."""
+    """Verify scripts/reconcile_backlog.py exists, is executable, and runs to completion."""
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if not os.path.isdir(repo_root):
         repo_root = os.getcwd()
@@ -273,6 +372,10 @@ def test_reconcile_backlog_tooling_accessible():
     assert os.path.isfile(reconcile_path), f"scripts/reconcile_backlog.py missing at {repo_root}"
     assert os.path.getsize(reconcile_path) > 0, f"scripts/reconcile_backlog.py is empty at {repo_root}"
     assert os.access(reconcile_path, os.R_OK), f"scripts/reconcile_backlog.py is not readable at {repo_root}"
+
+    res = subprocess.run([sys.executable, reconcile_path], cwd=repo_root, capture_output=True, text=True, timeout=60)
+    assert res.returncode == 0, f"scripts/reconcile_backlog.py failed with exit code {res.returncode}:\nSTDOUT:\n{res.stdout}\nSTDERR:\n{res.stderr}"
+    assert "Traceback" not in res.stderr, f"scripts/reconcile_backlog.py produced unhandled exception:\n{res.stderr}"
 EOF
 fi
 
@@ -281,3 +384,4 @@ if [ -f "$TARGET_DIR/scripts/setup_git_hooks.py" ]; then
 fi
 
 echo "==> Digital Pipeline Installation Complete. 0 manual steps remaining."
+
